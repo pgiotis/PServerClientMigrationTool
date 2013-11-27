@@ -9,8 +9,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.jar.Attributes;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.scify.pserverclientmigrationtool.communicator.PSClientRequest;
@@ -86,7 +84,7 @@ public class Migration {
         for (String cUser : Users) {
             //feed first users Attributes
             feedUserAttributes(cUser);
-//            //feed second users Features
+            //feed second users Features
             feedUserFeatures(cUser);
         }
         return "Done";
@@ -192,10 +190,6 @@ public class Migration {
             }
 
         }
-//        for (String tmpFtr : FeatureSet) {
-//            requestPS = "/1.0/personal/" + clientCrendetials + "/add_features.xml?features={\"" + tmpFtr + "\":\"" + Features.get(tmpFtr) + "\"}";
-//            PSClientRequest req = new PSClientRequest(ToPSAddress, ToPSPort, requestPS, post, timeout);
-//        }
         if (!allfeatures.isEmpty()) {
             requestPS = "/1.0/personal/" + clientCrendetials + "/add_features.xml?features={" + allfeatures + "}";
             req = new PSClientRequest(ToPSAddress, ToPSPort, requestPS, post, timeout);
@@ -235,28 +229,22 @@ public class Migration {
         requestPS = "/1.0/personal/" + clientCrendetials + "/users_features.xml?username=" + Username;
         PSClientRequest req = new PSClientRequest(FromPSAddress, FromPSPort, requestPS, post, timeout);
         String userfeatures = "";
-        int count = 0;
         //feed users Features to ToPSerer
         for (int i = 0; i < req.getRows(); i++) {
-            count++;
-
+            if (Integer.parseInt(req.getValue(i, 1)) == 0) {
+                break;
+            }
             if (userfeatures.isEmpty()) {
                 userfeatures = "\"" + req.getValue(i, 0) + "\":\"" + req.getValue(i, 1) + "\"";
             } else {
                 userfeatures = userfeatures + ",\"" + req.getValue(i, 0) + "\":\"" + req.getValue(i, 1) + "\"";
             }
 
-            if (count % 20 == 0) {
-                requestPS = "/1.0/personal/" + clientCrendetials +"/increase_users_values.xml?username=" + Username + "&featurelist={" + userfeatures + "}";
+            if (i % 20 == 0) {
+                requestPS = "/1.0/personal/" + clientCrendetials + "/increase_users_values.xml?username=" + Username + "&featurelist={" + userfeatures + "}";
                 userfeatures = "";
-                req = new PSClientRequest(ToPSAddress, ToPSPort, requestPS, post, timeout);
+                PSClientRequest ReqAddUsr = new PSClientRequest(ToPSAddress, ToPSPort, requestPS, post, timeout);
             }
-
-//            if (userfeatures.isEmpty()) {
-//                userfeatures = "\"" + req.getValue(i, 0) + "\":\"" + req.getValue(i, 1) + "\"";
-//            } else {
-//                userfeatures = userfeatures + ",\"" + req.getValue(i, 0) + "\":\"" + req.getValue(i, 1) + "\"";
-//            }
         }
         if (!userfeatures.isEmpty()) {
             requestPS = "/1.0/personal/" + clientCrendetials + "/increase_users_values.xml?username=" + Username + "&featurelist={" + userfeatures + "}";
